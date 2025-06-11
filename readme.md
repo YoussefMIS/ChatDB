@@ -2,6 +2,8 @@
 
 ChatDB is a Streamlit-based web application that allows you to chat with your database using natural language. It leverages LLMs (Large Language Models), Google Generative AI, Pinecone vector search, and LangChain to generate SQL queries and answer questions about your database schema and data.
 
+![ChatDB Demo](ChatDBDemo.gif)
+
 ## Features
 - **Conversational SQL Generation:** Ask questions in plain English and get SQL queries or database insights.
 - **Chat History:** Maintains a history of your questions and answers for context-aware conversations.
