@@ -31,13 +31,6 @@ ChatDB is a Streamlit-based web application that allows you to chat with your da
    ```sh
    pip install -r requirements.txt
    ```
-   *(Create a `requirements.txt` with the following main packages:)*
-   - streamlit
-   - python-dotenv
-   - langchain
-   - langchain-google-genai
-   - langchain-pinecone
-   - pinecone-client
 
 3. **Set up environment variables:**
    Create a `.env` file in the root directory with:
