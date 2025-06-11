@@ -1,73 +1,87 @@
-import os
+from typing import Set
 
-from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate
-from langchain_ollama import OllamaEmbeddings,ChatOllama
-from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
+from backend.core import run_llm
+import streamlit as st
+import time
 
-from langchain import hub
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.retrieval import create_retrieval_chain
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+st.set_page_config(
+    page_title="ChatDB",
+    page_icon="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
+)
+st.header("ChatDB - Chat with your database")
 
-
-load_dotenv()
-
-def format_docs(docs):
-    """Format the documents for the custom RAG prompt."""
-    return "\n\n".join([doc.page_content for i, doc in enumerate(docs)])
-
-if __name__ == "__main__":
-    template = """
-    You are an agent designed to interact with an Oracle SQL database.
-    Given an input question written in normal english, create a syntactically correct Oracle SQL query to run.
-    You can order the results by a relevant column to return the most interesting examples in the database.
-    Never query for all the columns from a specific table, only ask for the relevant columns given the question.
-
-    
-    DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP, TRUNCATE etc.) to the database.
-    To start you should ALWAYS look at the tables in the database to see what you can query.
-    DO NOT make up some column names or table names. 
-    Do NOT skip this step.
-    When possible try to join tables to extend the retrieved information.
-    Then you should generate the query from the schema of the most relevant tables.
-    
-    Use the following pieces of context to answer the question at the end.
-    If you don't know the answer, just say you don't know, don't try to make up an answer:
-    {context}
-    
-    Question: {question}"""
-
-    custom_rag_prompt = PromptTemplate.from_template(template=template)
+st.html(
+    """
+    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+        <span style="font-size: 1rem; color: #888;">Powered by Megasoft&nbsp;</span>
+        <img src="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png" alt="Megasoft Logo" style="height: 24px; vertical-align: middle;">
+    </div>
+    """
+)
 
 
-    print(" Retrieving...")
+prompt = st.chat_input(
+    "Ask to generate an SQL query or answer a question about your database"
+)
+if (
+    "chat_answers_history" not in st.session_state
+    and "user_prompt_history" not in st.session_state
+    and "chat_history" not in st.session_state
+):
+    st.session_state["chat_answers_history"] = []
+    st.session_state["user_prompt_history"] = []
+    st.session_state["chat_history"] = []
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-    llm = GoogleGenerativeAI(model="gemma-3-12b-it", google_api_key=os.environ["GOOGLE_API_KEY"], temperature=0)
 
-    query = "What is the total number of transactions per branch?"
+def create_sources_string(source_urls: Set[str]) -> str:
+    if not source_urls:
+        return ""
+    sources_list = list(source_urls)
+    sources_list.sort()
+    sources_string = "sources:\n"
+    for i, source in enumerate(sources_list):
+        sources_string += f"{i+1}. {source}\n"
+    return sources_string
 
-    vectorstore = PineconeVectorStore(
-        index_name=os.environ["INDEX_NAME"], embedding=embeddings
-    )
 
-    rag_chain = (
-        {"context": vectorstore.as_retriever() | format_docs, "question": RunnablePassthrough()}
-        | custom_rag_prompt
-        | llm
-        | StrOutputParser()
-    )
-    # retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
-    # combine_docs_chain = create_stuff_documents_chain(llm, retrieval_qa_chat_prompt)
-    # retrival_chain = create_retrieval_chain(
-    #     retriever=vectorstore.as_retriever(), combine_docs_chain=combine_docs_chain
-    # ) | StrOutputParser()
+def stream_data(data):
+    """Stream data to the Streamlit app."""
+    for chunk in data.split(" "):
+        yield chunk + " "
+        time.sleep(0.05)  # Add a space after each chunk for better readability
 
-    result = rag_chain.invoke(query)
 
-    print("Query was:", query)
-    print(result)
+if prompt:
+    with st.status("Generating response..") as status:
+        generated_response = run_llm(
+            query=prompt, chat_history=st.session_state["chat_history"]
+        )
+        # sources = set(
+        #     [doc.metadata["source"] for doc in generated_response["source_documents"]]
+        # )
+
+        formatted_response = f"{generated_response['result']} \n\n"
+        status.update(label="Generation complete!", state="complete")
+
+        st.session_state["user_prompt_history"].append(prompt)
+        st.session_state["chat_answers_history"].append(formatted_response)
+        st.session_state["chat_history"].append(("human", prompt))
+        st.session_state["chat_history"].append(("ai", generated_response["result"]))
+
+
+if st.session_state["chat_answers_history"]:
+    for generated_response, user_query in zip(
+        st.session_state["chat_answers_history"],
+        st.session_state["user_prompt_history"],
+    ):
+        st.chat_message("user").write(user_query)
+        if generated_response == st.session_state["chat_answers_history"][-1]:
+            st.chat_message(
+                "assistant",
+                avatar="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
+            ).write_stream(stream_data(generated_response))
+        else:
+            st.chat_message(
+                "assistant",
+                avatar="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
+            ).write(generated_response)
