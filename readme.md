@@ -24,7 +24,7 @@ ChatDB is a Streamlit-based web application that allows you to chat with your da
 ### Installation
 1. **Clone the repository:**
    ```sh
-   git clone <your-repo-url>
+   git clone <the-repo-url>
    cd chatdb
    ```
 2. **Install dependencies:**
