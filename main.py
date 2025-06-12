@@ -5,16 +5,14 @@ import streamlit as st
 import time
 
 st.set_page_config(
-    page_title="ChatDB",
-    page_icon="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
-)
+    page_title="ChatDB"
+    )
 st.header("ChatDB - Chat with your database")
 
 st.html(
     """
     <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-        <span style="font-size: 1rem; color: #888;">Powered by Megasoft&nbsp;</span>
-        <img src="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png" alt="Megasoft Logo" style="height: 24px; vertical-align: middle;">
+        <span style="font-size: 1rem; color: #888;">Powered by Langchain&nbsp;</span>
     </div>
     """
 )
@@ -78,10 +76,8 @@ if st.session_state["chat_answers_history"]:
         if generated_response == st.session_state["chat_answers_history"][-1]:
             st.chat_message(
                 "assistant",
-                avatar="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
             ).write_stream(stream_data(generated_response))
         else:
             st.chat_message(
                 "assistant",
-                avatar="https://static.wixstatic.com/media/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/5cfd00_5393a6df18c44cdd984cffa6d7b0e368%7Emv2.png",
             ).write(generated_response)
