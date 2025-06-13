@@ -12,8 +12,8 @@ load_dotenv()
 
 if __name__ == "__main__":
     print("Ingesting...")
-    schemaloader = TextLoader(r"C:\Users\Lobna\chatdb\schema.txt", encoding="utf-8")
-    sqlloader = TextLoader(r"C:\Users\Lobna\chatdb\sql.txt", encoding="utf-8")
+    schemaloader = TextLoader(r"schema.txt", encoding="utf-8")
+    sqlloader = TextLoader(r"sql.txt", encoding="utf-8")
     schemadocument = schemaloader.load()
     sqldocument = sqlloader.load()
 
