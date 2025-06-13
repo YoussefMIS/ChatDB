@@ -71,6 +71,3 @@ See [LICENSE.txt](LICENSE.txt) for details.
 - [LangChain](https://www.langchain.com/)
 - [Google Generative AI](https://ai.google.dev/)
 - [Pinecone](https://www.pinecone.io/)
-
----
-*Powered by Megasoft*
