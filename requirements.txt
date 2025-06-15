@@ -3,6 +3,6 @@ python-dotenv
 langchain
 langchain-google-genai
 langchain-pinecone
-pinecone-client
+pinecone
 langchain_community
 langchain-text-splitters
